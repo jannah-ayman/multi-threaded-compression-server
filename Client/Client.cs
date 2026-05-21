@@ -49,18 +49,6 @@ namespace Client
 
         private async void sendBtn_Click(object sender, EventArgs e)
         {
-            if (selectedFilePath == "")
-            {
-                MessageBox.Show("Please select a file first.");
-                return;
-            }
-
-            if (tcpClient == null || !tcpClient.Connected)
-            {
-                MessageBox.Show("Please connect to the server first.");
-                return;
-            }
-
             sendBtn.Enabled = false;
             browseBtn.Enabled = false;
 

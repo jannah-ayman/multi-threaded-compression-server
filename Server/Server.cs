@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -16,7 +17,7 @@ namespace Server
         }
 
         TcpListener listener;
-        static int activeConnections = 0;
+        int activeConnections = 0;
 
         private async void startBtn_Click(object sender, EventArgs e)
         {
@@ -28,41 +29,42 @@ namespace Server
             while (true)
             {
                 TcpClient client = await listener.AcceptTcpClientAsync();
-                _ = HandleClientAsync(client);
+                _ = HandleClient(client);
             }
         }
 
-        private async Task HandleClientAsync(TcpClient client)
+        private async Task HandleClient(TcpClient client)
         {
             NetworkStream ns = client.GetStream();
             activeConnections++;
             logText.Text += $"Client connected. Active connections: {activeConnections}" + Environment.NewLine;
-
             try
             {
-                // read file size
+                //read file size
                 byte[] sizeBuf = new byte[4];
                 int recv = await ns.ReadAsync(sizeBuf, 0, 4);
                 int fileSize = BitConverter.ToInt32(sizeBuf, 0);
 
                 logText.Text += $"Expecting file of {fileSize} bytes..." + Environment.NewLine;
 
-                // read file bytes
+                //read file bytes
                 byte[] fileData = new byte[fileSize];
                 int totalRead = 0;
                 while (totalRead < fileSize)
                 {
                     recv = await ns.ReadAsync(fileData, totalRead, fileSize - totalRead);
-                    if (recv == 0) 
-                        throw new Exception("Connection closed unexpectedly.");
+                    if (recv == 0)
+                    {
+                        logText.Text += "Connection closed unexpectedly." + Environment.NewLine;
+                        return;
+                    }
+                        
                     totalRead += recv;
                 }
                 logText.Text += "File received, compressing..." + Environment.NewLine;
 
-                // compress using gzip
                 MemoryStream ms = new MemoryStream();
-                using (GZipStream gz = new GZipStream(ms,CompressionMode.Compress))
-                {
+                using (GZipStream gz = new GZipStream(ms, CompressionMode.Compress)) {
                     gz.Write(fileData, 0, fileData.Length);
                 }
                 byte[] compressedData = ms.ToArray();

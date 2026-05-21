@@ -34,9 +34,10 @@
             // 
             // startBtn
             // 
-            this.startBtn.Location = new System.Drawing.Point(95, 86);
+            this.startBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.startBtn.Location = new System.Drawing.Point(87, 100);
             this.startBtn.Name = "startBtn";
-            this.startBtn.Size = new System.Drawing.Size(108, 30);
+            this.startBtn.Size = new System.Drawing.Size(126, 51);
             this.startBtn.TabIndex = 0;
             this.startBtn.Text = "Start Server";
             this.startBtn.UseVisualStyleBackColor = true;
