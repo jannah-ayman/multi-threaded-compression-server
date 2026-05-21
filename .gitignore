@@ -1,0 +1,9 @@
+# Visual Studio cache and tracking folders
+.vs/
+
+# Build outputs (assuming C++ / C# / etc.)
+bin/
+obj/
+*.exe
+*.pdb
+*.user
