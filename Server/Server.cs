@@ -16,7 +16,7 @@ namespace Server
         }
 
         TcpListener listener;
-        private static int activeConnections = 0;
+        static int activeConnections = 0;
 
         private async void startBtn_Click(object sender, EventArgs e)
         {
@@ -42,7 +42,7 @@ namespace Server
             {
                 // read file size
                 byte[] sizeBuf = new byte[8];
-                int read = await ns.ReadAsync(sizeBuf, 0, 8);
+                await ns.ReadAsync(sizeBuf, 0, 8);
                 long fileSize = BitConverter.ToInt64(sizeBuf, 0);
 
                 logText.Text += $"Expecting file of {fileSize} bytes..." + Environment.NewLine;
@@ -53,7 +53,8 @@ namespace Server
                 while (totalRead < fileSize)
                 {
                     int r = await ns.ReadAsync(fileData, totalRead, (int)(fileSize - totalRead));
-                    if (r == 0) throw new Exception("Connection closed unexpectedly.");
+                    if (r == 0) 
+                        throw new Exception("Connection closed unexpectedly.");
                     totalRead += r;
                 }
                 logText.Text += "File received, compressing..." + Environment.NewLine;
