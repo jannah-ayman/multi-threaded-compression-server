@@ -41,9 +41,9 @@ namespace Server
             try
             {
                 // read file size
-                byte[] sizeBuf = new byte[8];
-                await ns.ReadAsync(sizeBuf, 0, 8);
-                long fileSize = BitConverter.ToInt64(sizeBuf, 0);
+                byte[] sizeBuf = new byte[4];
+                int recv = await ns.ReadAsync(sizeBuf, 0, 4);
+                int fileSize = BitConverter.ToInt32(sizeBuf, 0);
 
                 logText.Text += $"Expecting file of {fileSize} bytes..." + Environment.NewLine;
 
@@ -52,10 +52,10 @@ namespace Server
                 int totalRead = 0;
                 while (totalRead < fileSize)
                 {
-                    int r = await ns.ReadAsync(fileData, totalRead, (int)(fileSize - totalRead));
-                    if (r == 0) 
+                    recv = await ns.ReadAsync(fileData, totalRead, fileSize - totalRead);
+                    if (recv == 0) 
                         throw new Exception("Connection closed unexpectedly.");
-                    totalRead += r;
+                    totalRead += recv;
                 }
                 logText.Text += "File received, compressing..." + Environment.NewLine;
 
@@ -69,8 +69,8 @@ namespace Server
                 logText.Text += $"Compressed size: {compressedData.Length} bytes" + Environment.NewLine;
 
                 // send compressed size then compressed data
-                byte[] compSizeBuf = BitConverter.GetBytes((long)compressedData.Length);
-                await ns.WriteAsync(compSizeBuf, 0, 8);
+                byte[] compSizeBuf = BitConverter.GetBytes(compressedData.Length);
+                await ns.WriteAsync(compSizeBuf, 0, 4);
                 await ns.WriteAsync(compressedData, 0, compressedData.Length);
                 await ns.FlushAsync();
                 logText.Text += "Compressed file sent to client." + Environment.NewLine;

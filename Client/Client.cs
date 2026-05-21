@@ -66,35 +66,35 @@ namespace Client
 
             try
             {
-                // STEP 1: Read file into memory
+                // read file into memory
                 byte[] fileData = File.ReadAllBytes(selectedFilePath);
-                long fileSize = fileData.Length;
+                int fileSize = fileData.Length;
                 logText.Text += $"Sending file... ({fileSize} bytes)" + Environment.NewLine;
 
-                // STEP 2: Send file size then file data
+                // send file size then file data
                 byte[] sizeBuf = BitConverter.GetBytes(fileSize);
-                await ns.WriteAsync(sizeBuf, 0, 8);
-                await ns.WriteAsync(fileData, 0, (int)fileSize);
+                await ns.WriteAsync(sizeBuf, 0, 4);
+                await ns.WriteAsync(fileData, 0, fileSize);
                 await ns.FlushAsync();
                 logText.Text += $"Original: {fileSize} bytes" + Environment.NewLine;
                 logText.Text += "File sent. Waiting for compressed file..." + Environment.NewLine;
 
-                // STEP 3: Read compressed size (8 bytes)
-                byte[] compSizeBuf = new byte[8];
-                int read = await ns.ReadAsync(compSizeBuf, 0, 8);
-                long compSize = BitConverter.ToInt64(compSizeBuf, 0);
+                // read compressed size
+                byte[] compSizeBuf = new byte[4];
+                int recv = await ns.ReadAsync(compSizeBuf, 0, 4);
+                int compSize = BitConverter.ToInt32(compSizeBuf, 0);
 
-                // STEP 4: Read compressed file bytes
+                // read compressed file bytes
                 byte[] compData = new byte[compSize];
                 int totalRead = 0;
                 while (totalRead < compSize)
                 {
-                    read = await ns.ReadAsync(compData, totalRead, (int)(compSize - totalRead));
-                    if (read == 0) throw new Exception("Connection closed unexpectedly.");
-                    totalRead += read;
+                    recv = await ns.ReadAsync(compData, totalRead, (compSize - totalRead));
+                    if (recv == 0) throw new Exception("Connection closed unexpectedly.");
+                    totalRead += recv;
                 }
 
-                // STEP 5: Save compressed file
+                // save compressed file
                 string savePath = selectedFilePath + ".gz";
                 File.WriteAllBytes(savePath, compData);
                 logText.Text += $"Compressed: {compSize} bytes" + Environment.NewLine;
@@ -108,7 +108,6 @@ namespace Client
             {
                 connectBtn.Enabled = true;
             }
-
         }
     }
 }
